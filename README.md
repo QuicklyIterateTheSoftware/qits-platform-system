@@ -103,10 +103,12 @@ session from a list without opening it.
   slave device itself under `setsid --ctty`. That shape is a fix, not a style — see
   `terminal/TerminalProcesses`, which carries the incident it came from.
 - **Lifecycle**: the linger window (60s) is armed at creation and re-armed on the last detach; a
-  DELETE ends it now. Ending a glances session also `docker rm -f`s its container, because `--rm`
-  fires on container exit and killing the attached CLI is not that. A boot sweep removes what a
-  previous life left behind, filtered on the owner label so two platforms on one daemon do not reap
-  each other.
+  DELETE ends it now. On the LAST detach of a glances session the window is 3s instead, so leaving
+  the Overview stops the host monitor a few seconds later — long enough to carry it across a reload,
+  short enough that nobody watches an abandoned container. Ending a glances session also
+  `docker rm -f`s its container, because `--rm` fires on container exit and killing the attached CLI
+  is not that. A boot sweep removes what a previous life left behind, filtered on the owner label so
+  two platforms on one daemon do not reap each other.
 
 Wire protocol (the platform's existing one, so one xterm client works everywhere): the client sends
 `{"type":"data","data":"…"}` and `{"type":"resize","cols":N,"rows":M}`; the server sends raw PTY
@@ -127,7 +129,8 @@ deployment as `QITS_SYSTEM_*`. The defaults and the reasoning are in
     logs.max-tail=5000                    logs.max-chars=262144
     glances.image-repo=mirror.dev.localhost:8080/hub/nicolargo/glances
     glances.image-version=4.5.6-full      glances.args=      glances.pull-at-startup=true
-    terminals.linger=PT60S                terminals.max-sessions=8
+    terminals.linger=PT60S                terminals.glances-linger=PT3S
+    terminals.max-sessions=8
     terminals.scrollback-bytes=262144     terminals.write-timeout=PT5S
     terminals.owner=${quarkus.application.name}
 

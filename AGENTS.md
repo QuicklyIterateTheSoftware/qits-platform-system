@@ -91,6 +91,12 @@ feeding the live decoder the scrollback would corrupt both.
 **Create is separate from attach, and the linger window is armed at CREATION.** A POST whose browser
 never connects must not leave a container running with nothing pointing at it.
 
+**Glances stops when the last viewer leaves; a shell does not.** The last detach arms
+`terminals.glances-linger` (3s) for GLANCES and `terminals.linger` (60s) for EXEC. A host monitor
+holds nothing worth coming back to, so navigating away from the Overview must stop it — but not
+instantly: a reload closes and reopens the socket within a second or two, and the session is shared.
+The CREATION window stays the long one for both, because nobody has attached yet.
+
 **Ending a glances session is two acts.** `--rm` fires when the CONTAINER exits; killing the CLI
 attached to it is not that. The second act is `docker rm -f` by the name the argv builder derived
 from the session id, and the boot sweep is what catches the ones a killed service left behind.
