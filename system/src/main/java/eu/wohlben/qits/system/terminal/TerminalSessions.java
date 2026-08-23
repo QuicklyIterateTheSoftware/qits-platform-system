@@ -43,6 +43,10 @@ import org.jboss.logging.Logger;
  *   <li><b>GLANCES is find-or-create.</b> There is one host, so a second request for a host monitor
  *       is the same monitor: the caller gets the live one back (and the controller answers 200
  *       rather than 201). EXEC is not — two shells in one container is an ordinary thing to want.
+ *   <li><b>GLANCES lingers for seconds, EXEC for a minute.</b> A host monitor has nothing in it to
+ *       come back to, so the last viewer leaving the page must stop it — see {@code glances-linger}.
+ *       A shell has a working directory, a history and a half-typed command, so it keeps the full
+ *       window and survives a reload.
  * </ul>
  *
  * <p><b>Routing.</b> {@link #attach} returns a {@link Handle} bound to the exact session, and the
@@ -61,6 +65,10 @@ public class TerminalSessions {
 
   @ConfigProperty(name = "qits.system.terminals.linger")
   Duration linger;
+
+  /** The last-detach window for GLANCES: short, so leaving the Overview stops the host monitor. */
+  @ConfigProperty(name = "qits.system.terminals.glances-linger")
+  Duration glancesLinger;
 
   @ConfigProperty(name = "qits.system.terminals.max-sessions")
   int maxSessions;
@@ -164,7 +172,9 @@ public class TerminalSessions {
       session = spawn(launch, principal);
       sessions.put(session.id(), session);
       // Armed at creation: a POST whose browser never connects must not leave a container running.
-      armLinger(session.id());
+      // The FULL window even for glances — nobody has attached yet, so there is no "left the page"
+      // to react to, only a browser that may still be finishing its upgrade.
+      armLinger(session.id(), linger);
     }
     session.startReader();
     LOG.infof("Opened %s terminal %s for %s", launch.kind(), session.id(), principal);
@@ -285,19 +295,33 @@ public class TerminalSessions {
   private synchronized void detachClient(TerminalSession session, TerminalOutputSink sink) {
     int remaining = session.detach(sink);
     if (remaining == 0 && session.isAlive() && sessions.containsKey(session.id())) {
-      armLinger(session.id());
+      armLinger(session.id(), detachLinger(session.kind()));
     }
   }
 
-  /** Arm (or re-arm) the linger backstop. The caller holds the monitor. */
-  private void armLinger(UUID id) {
+  /**
+   * How long an unattended session waits after its LAST client left.
+   *
+   * <p>Glances gets the short window: the operator navigated away from the Overview, and a host
+   * monitor holds nothing worth coming back to, so it must stop by itself. A shell holds a working
+   * directory, a history and a half-typed command, so it keeps the full window and outlives a
+   * reload.
+   */
+  private Duration detachLinger(TerminalKind kind) {
+    return kind == TerminalKind.GLANCES ? glancesLinger : linger;
+  }
+
+  /** Arm (or re-arm) the linger backstop over {@code window}. The caller holds the monitor. */
+  private void armLinger(UUID id, Duration window) {
     cancelLinger(id);
     Object token = new Object();
     lingerTokens.put(id, token);
     lingerFutures.put(
         id,
         scheduler.schedule(
-            () -> terminateIfUnattended(id, token), linger.toMillis(), TimeUnit.MILLISECONDS));
+            () -> terminateIfUnattended(id, token, window),
+            window.toMillis(),
+            TimeUnit.MILLISECONDS));
   }
 
   /**
@@ -307,7 +331,7 @@ public class TerminalSessions {
    * bails. Removal happens under the monitor (so a racing attach cannot join a dying session); the
    * blocking teardown runs outside it.
    */
-  private void terminateIfUnattended(UUID id, Object lingerToken) {
+  private void terminateIfUnattended(UUID id, Object lingerToken, Duration window) {
     TerminalSession toEnd = null;
     synchronized (this) {
       if (lingerTokens.get(id) != lingerToken) {
@@ -321,7 +345,7 @@ public class TerminalSessions {
       }
     }
     if (toEnd != null) {
-      endSession(toEnd, "unattended for " + linger);
+      endSession(toEnd, "unattended for " + window);
     }
   }
 
