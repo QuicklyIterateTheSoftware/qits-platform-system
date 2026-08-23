@@ -35,7 +35,7 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
-            <!-- ObjectMapper without a REST layer. Docker's `--format '{{json .}}'` output and its
+            <!-- ObjectMapper without a REST layer. Docker's `{{json .}}` formatted output and its
                  `inspect` documents are read as TREES rather than bound to generated types: the
                  shapes are the docker API's, they carry dozens of fields this service does not
                  show, and binding them would make every docker release a compile error here. The
