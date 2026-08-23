@@ -1,0 +1,229 @@
+#!/bin/sh
+# A docker CLI that is not one.
+#
+# THIS IS WHAT MAKES THE SUITE RUN WITH NO DAEMON. `qits.system.docker.binary` is a config key
+# precisely so a test can point it at this file: as far as the service is concerned, `docker` is a
+# program on PATH, and here the suite gets to choose which program that is. Nothing is mocked
+# inside the service — a real ProcessBuilder forks a real child, a real PTY carries a real
+# terminal, and the argv this receives is the argv the argv builders produced.
+#
+# It answers three kinds of call:
+#
+#   reads       recorded output, in the exact shapes docker prints (one JSON object per line for
+#               `ls --format`, a JSON array for `inspect`). They are abridged captures of the
+#               fixtures in system/src/test/resources/fixtures, which is where the real ones live.
+#   refusals    an unknown container exits 1 with docker's own wording, so the service's
+#               404-versus-503 rule is exercised rather than assumed.
+#   terminals   `run -it` and `exec -it` become a real echo loop with a WINCH trap, so a websocket
+#               test drives a genuine pseudo-terminal end to end.
+#
+# Every call is appended to calls.log beside this script, so a test can assert WHICH command was
+# run — the boot sweep's `rm -f`, the glances teardown — without a mock.
+
+here=$(dirname "$0")
+printf '%s\n' "$*" >> "$here/calls.log"
+
+# The container this fake knows about, and the id it answers with. 64 hex, because that is what the
+# daemon prints and the only thing the exec argv is allowed to carry.
+KNOWN_ID=b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17
+STOPPED_ID=aa11bb22cc33dd44ee55ff6677889900aabbccddeeff00112233445566778899
+
+# --- a terminal ------------------------------------------------------------------------------------
+# The loop a `run -it` or an `exec -it` turns into. It runs on the pseudo-terminal the service
+# allocated, so `stty size` reads the real window size — which is how a resize frame is proved to
+# have reached the child as SIGWINCH.
+terminal() {
+  # The trap is the point: the kernel sends SIGWINCH to the foreground process group of the
+  # terminal's session, which this is only because `setsid --ctty` put it there.
+  trap 'stty size' WINCH
+  printf 'fake-terminal ready\r\n'
+  while :; do
+    if IFS= read -r line; then
+      case "$line" in
+        exit) printf 'bye\r\n'; exit 0 ;;
+        crash) exit 3 ;;
+        *) printf 'echo:%s\r\n' "$line" ;;
+      esac
+    else
+      status=$?
+      # A read interrupted by a signal returns above 128; anything else is end of input.
+      [ "$status" -gt 128 ] || exit 0
+    fi
+  done
+}
+
+case "$1" in
+  version)
+    echo "29.7.2"
+    ;;
+
+  info)
+    cat <<'JSON'
+{"ID":"ce75db56-24b3-4e4f-ace7-5cac8d63356e","Containers":26,"ContainersRunning":23,"ContainersPaused":0,"ContainersStopped":3,"Images":1244,"Driver":"overlayfs","MemoryLimit":true,"NCPU":24,"MemTotal":33529409536,"DockerRootDir":"/var/lib/docker","Name":"fake-host","KernelVersion":"6.6.87.2-microsoft-standard-WSL2","OperatingSystem":"Fedora Linux 43 (WSL)","OSVersion":"43","OSType":"linux","Architecture":"x86_64","ServerVersion":"29.7.2","CgroupDriver":"systemd","CgroupVersion":"2","LoggingDriver":"json-file","Warnings":["WARNING: bridge-nf-call-iptables is disabled"],"Swarm":{"NodeID":"iwbwrdui2z0n62kqcjfo1erwh","NodeAddr":"192.168.152.4","LocalNodeState":"active","ControlAvailable":true,"Error":"","Nodes":1,"Managers":1,"Cluster":{"ID":"lysckrdwpfyqovchlqs02nvs1"}}}
+JSON
+    ;;
+
+  system)
+    cat <<'JSON'
+{"Active":"18","Reclaimable":"286.8GB (93%)","Size":"308.3GB","TotalCount":"425","Type":"Images"}
+{"Active":"18","Reclaimable":"110.6kB (0%)","Size":"59.34MB","TotalCount":"26","Type":"Containers"}
+{"Active":"7","Reclaimable":"1.492GB (4%)","Size":"33.49GB","TotalCount":"23","Type":"Local Volumes"}
+{"Active":"0","Reclaimable":"103.5GB","Size":"302.5GB","TotalCount":"1877","Type":"Build Cache"}
+JSON
+    ;;
+
+  node)
+    case "$2" in
+      ls)
+        echo '{"Availability":"Active","EngineVersion":"29.7.2","Hostname":"fake-host","ID":"iwbwrdui2z0n62kqcjfo1erwh","ManagerStatus":"Leader","Self":true,"Status":"Ready","TLSStatus":"Ready"}'
+        ;;
+      inspect)
+        if [ "$3" != "iwbwrdui2z0n62kqcjfo1erwh" ]; then
+          echo "Error: no such node: $3" >&2
+          exit 1
+        fi
+        cat <<'JSON'
+[{"ID":"iwbwrdui2z0n62kqcjfo1erwh","Version":{"Index":234415},"CreatedAt":"2026-08-08T07:04:02.737121551Z","UpdatedAt":"2026-08-23T12:27:33.948524386Z","Spec":{"Labels":{},"Role":"manager","Availability":"active"},"Description":{"Hostname":"fake-host","Platform":{"Architecture":"x86_64","OS":"linux"},"Resources":{"NanoCPUs":24000000000,"MemoryBytes":33529409536},"Engine":{"EngineVersion":"29.7.2"}},"Status":{"State":"ready","Addr":"192.168.152.4"},"ManagerStatus":{"Leader":true,"Reachability":"reachable","Addr":"192.168.152.4:2377"}}]
+JSON
+        ;;
+    esac
+    ;;
+
+  service)
+    case "$2" in
+      ls)
+        cat <<'JSON'
+{"ID":"l2izhr0o4tjq","Image":"registry.dev.localhost:8080/qits/qits-artifacts:09920e6","Mode":"replicated","Name":"dev-qits-artifacts","Ports":"","Replicas":"1/1"}
+{"ID":"qz3slj0owlxd","Image":"registry.dev.localhost:8080/qits/qits-ci:3e501b6","Mode":"replicated","Name":"dev-qits-ci","Ports":"","Replicas":"1/1"}
+JSON
+        ;;
+      inspect)
+        if [ "$3" != "dev-qits-artifacts" ]; then
+          echo "Error: no such service: $3" >&2
+          exit 1
+        fi
+        cat <<'JSON'
+[{"ID":"l2izhr0o4tjq34f7arurhgmm8","Version":{"Index":234413},"CreatedAt":"2026-08-18T02:32:15.775211499Z","UpdatedAt":"2026-08-23T12:27:33.349751944Z","Spec":{"Name":"dev-qits-artifacts","Labels":{"qits.platform.deployments.app-name":"qits-artifacts"},"TaskTemplate":{"ContainerSpec":{"Image":"registry.dev.localhost:8080/qits/qits-artifacts:09920e6","Env":["QITS_ENVIRONMENT=dev","QITS_RESOURCE_DB_PASSWORD=not-a-real-secret-scrubbed-for-the-fixture"],"Healthcheck":{"Test":["CMD-SHELL","curl -fsS localhost:8080/artifacts/q/health/ready"]}},"RestartPolicy":{"Condition":"any"}},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"rollback","Order":"stop-first"}},"Endpoint":{"Spec":{"Mode":"vip"},"VirtualIPs":[{"NetworkID":"mulnl3uqqi0hkr0yuutakpyed","Addr":"10.0.1.110/24"}]}}]
+JSON
+        ;;
+      ps)
+        cat <<'JSON'
+{"CurrentState":"Running 4 hours ago","DesiredState":"Running","Error":"","ID":"abx4yo2tk0ls7z5z5t80pweo9","Image":"registry.dev.localhost:8080/qits/qits-artifacts:09920e6","Name":"dev-qits-artifacts.1","Node":"fake-host","Ports":""}
+{"CurrentState":"Failed 4 hours ago","DesiredState":"Shutdown","Error":"\"No such container: dev-qits-artifacts.1.n512nrfshfr8qfrm60sv4nyfo\"","ID":"n512nrfshfr8qfrm60sv4nyfo","Image":"registry.dev.localhost:8080/qits/qits-artifacts:09920e6","Name":"dev-qits-artifacts.1","Node":"fake-host","Ports":""}
+JSON
+        ;;
+    esac
+    ;;
+
+  config)
+    case "$2" in
+      ls)
+        echo '{"CreatedAt":"2026-08-18 04:31:02 +0000 UTC","ID":"ktnbjxoalbkvbvedmg1urrz8h","Labels":"qits.platform.deployments.target=platform","Name":"qits-edge-vhosts","UpdatedAt":"2026-08-18 04:31:02 +0000 UTC"}'
+        ;;
+      inspect)
+        if [ "$3" != "qits-edge-vhosts" ]; then
+          echo "Error: no such config: $3" >&2
+          exit 1
+        fi
+        cat <<'JSON'
+[{"ID":"ktnbjxoalbkvbvedmg1urrz8h","Version":{"Index":4711},"CreatedAt":"2026-08-18T04:31:02.113044212Z","UpdatedAt":"2026-08-18T04:31:02.113044212Z","Spec":{"Name":"qits-edge-vhosts","Labels":{"qits.platform.deployments.target":"platform"},"Data":"cmVnaXN0cnkuZGV2LmxvY2FsaG9zdCAtPiBxaXRzLWFydGlmYWN0cwo="}}]
+JSON
+        ;;
+    esac
+    ;;
+
+  secret)
+    echo '{"CreatedAt":"2026-08-18 04:31:09 +0000 UTC","Driver":"","ID":"jvbcnrfhrbn8u9c9c0nfg2rrj","Labels":"","Name":"qits-platform-idp-signing-key","UpdatedAt":"2026-08-18 04:31:09 +0000 UTC"}'
+    ;;
+
+  ps)
+    case "$2" in
+      -aq)
+        # The boot sweep's list of leftovers. Empty by default; a test that wants one writes a file.
+        if [ -f "$here/leftovers" ]; then
+          cat "$here/leftovers"
+        fi
+        ;;
+      *)
+        cat <<JSON
+{"Command":"\"/work/qits-ci\"","CreatedAt":"2026-08-23 14:28:51 +0200 CEST","HealthStatus":"healthy","ID":"$KNOWN_ID","Image":"registry.dev.localhost:8080/qits/qits-ci:3e501b6","Labels":"maintainer=Red Hat, Inc.","LocalVolumes":"0","Mounts":"","Names":"dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m","Networks":"qits-net","Ports":"8080/tcp","RunningFor":"4 hours ago","Size":"9.89MB","State":"running","Status":"Up 4 hours (healthy)"}
+JSON
+        # `-a` is what asks for the dead ones too.
+        case "$*" in
+          *" -a "*|*" -a")
+            cat <<JSON
+{"Command":"\"/work/old\"","CreatedAt":"2026-08-20 09:00:00 +0200 CEST","HealthStatus":"","ID":"$STOPPED_ID","Image":"registry.dev.localhost:8080/qits/old:1","Labels":"","LocalVolumes":"0","Mounts":"","Names":"a-stopped-one","Networks":"qits-net","Ports":"","RunningFor":"3 days ago","Size":"0B","State":"exited","Status":"Exited (137) 3 days ago"}
+JSON
+            ;;
+        esac
+        ;;
+    esac
+    ;;
+
+  container)
+    # `container inspect [--format F] <ref>` — the reference is always the LAST argument.
+    ref=$(eval "echo \${$#}")
+    case "$ref" in
+      "$KNOWN_ID"|dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m|b248472f7a8e)
+        state=true; id=$KNOWN_ID; name=/dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m ;;
+      "$STOPPED_ID"|a-stopped-one)
+        state=false; id=$STOPPED_ID; name=/a-stopped-one ;;
+      *)
+        # Docker's own wording, which is how the service tells a 404 from a 503.
+        echo "Error response from daemon: No such container: $ref" >&2
+        exit 1 ;;
+    esac
+    case "$3" in
+      --format)
+        printf '%s|%s|%s\n' "$id" "$state" "$name"
+        ;;
+      *)
+        cat <<JSON
+[{"Id":"$id","Created":"2026-08-23T12:28:51.9948477Z","Path":"/work/qits-ci","Args":["-Dquarkus.http.host=0.0.0.0"],"State":{"Status":"running","Running":$state,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":13549,"ExitCode":0,"StartedAt":"2026-08-23T12:28:52.082646669Z","FinishedAt":"0001-01-01T00:00:00Z","Health":{"Status":"healthy"}},"Image":"sha256:14beaf669b73","Name":"$name","RestartCount":0,"HostConfig":{"RestartPolicy":{"Name":"no"},"Memory":0,"PidsLimit":null,"OomScoreAdj":0,"Privileged":false,"ReadonlyRootfs":false},"Mounts":[{"Type":"volume","Name":"qits-shared-m2","Destination":"/caches/m2","Mode":"z","RW":true}],"Config":{"User":"1001","Image":"registry.dev.localhost:8080/qits/qits-ci:3e501b6","Labels":{"qits.platform.deployments.app-name":"qits-ci"},"Env":["QITS_ENVIRONMENT=dev","QITS_RESOURCE_DB_PASSWORD=not-a-real-secret-scrubbed-for-the-fixture"]},"NetworkSettings":{"Networks":{"qits-net":{"IPAddress":"10.0.1.42"}}}}]
+JSON
+        ;;
+    esac
+    ;;
+
+  logs)
+    ref=$(eval "echo \${$#}")
+    case "$ref" in
+      "$KNOWN_ID"|dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m|b248472f7a8e|"$STOPPED_ID"|a-stopped-one) ;;
+      *) echo "Error response from daemon: No such container: $ref" >&2; exit 1 ;;
+    esac
+    printf 'the first line of the log\nthe last line of the log\n'
+    ;;
+
+  image)
+    echo '{"Containers":"3","CreatedAt":"2026-08-18 04:46:43 +0200 CEST","CreatedSince":"5 days ago","Digest":"<none>","ID":"sha256:14beaf669b73","Repository":"registry.dev.localhost:8080/qits/qits-ci","SharedSize":"N/A","Size":"325MB","Tag":"3e501b6","UniqueSize":"N/A"}'
+    ;;
+
+  volume)
+    echo '{"Availability":"N/A","Driver":"local","Group":"N/A","Labels":"","Links":"N/A","Mountpoint":"/var/lib/docker/volumes/qits-shared-m2/_data","Name":"qits-shared-m2","Scope":"local","Size":"N/A","Status":"N/A"}'
+    ;;
+
+  network)
+    cat <<'JSON'
+{"CreatedAt":"2026-08-18 02:13:24 +0000 UTC","Driver":"overlay","ID":"mulnl3uqqi0h","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"qits-net","Scope":"swarm"}
+JSON
+    ;;
+
+  rm)
+    # Recorded above; docker echoes what it removed.
+    shift 2
+    for id in "$@"; do echo "$id"; done
+    ;;
+
+  pull)
+    echo "Status: Image is up to date for $2"
+    ;;
+
+  exec|run)
+    terminal
+    ;;
+
+  *)
+    echo "fake docker: unknown command: $*" >&2
+    exit 1
+    ;;
+esac

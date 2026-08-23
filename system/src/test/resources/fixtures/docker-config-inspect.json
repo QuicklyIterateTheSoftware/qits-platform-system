@@ -1,0 +1,17 @@
+[
+    {
+        "ID": "ktnbjxoalbkvbvedmg1urrz8h",
+        "Version": {
+            "Index": 4711
+        },
+        "CreatedAt": "2026-08-18T04:31:02.113044212Z",
+        "UpdatedAt": "2026-08-18T04:31:02.113044212Z",
+        "Spec": {
+            "Name": "qits-edge-vhosts",
+            "Labels": {
+                "qits.platform.deployments.target": "platform"
+            },
+            "Data": "cmVnaXN0cnkuZGV2LmxvY2FsaG9zdCAtPiBxaXRzLWFydGlmYWN0cwo="
+        }
+    }
+]

@@ -54,3 +54,9 @@ allure-results/
 # IDE (m2e/jdtls) build output — kept separate from Maven's target/ so the language server
 # never clobbers target/classes (see the m2e-separate-output profile in pom.xml).
 target-ide/
+
+# What the suite's stand-in docker records. The script writes it beside itself, and the copy under
+# target/test-classes is the one the tests actually read — this entry only catches a run that
+# pointed at the source tree.
+service/src/test/resources/fake-docker/calls.log
+service/src/test/resources/fake-docker/leftovers

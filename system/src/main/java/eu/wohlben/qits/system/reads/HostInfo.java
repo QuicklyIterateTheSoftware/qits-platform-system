@@ -9,11 +9,15 @@ import java.util.List;
  * <p>Every field is one line of `docker info` output an operator would otherwise ssh in to read.
  * `warnings` is included because the daemon puts real problems there (no swap limit support, an
  * insecure registry) and nothing else on the platform surfaces them.
+ *
+ * <p>The component names are the CLIENT's vocabulary, not docker's: `hostname` rather than `Name`,
+ * `os` rather than `OperatingSystem`, `dockerVersion` rather than `ServerVersion`. The parser is
+ * where the two meet, which is the whole reason there is one.
  */
 public record HostInfo(
-    String name,
-    String serverVersion,
-    String operatingSystem,
+    String hostname,
+    String dockerVersion,
+    String os,
     String osType,
     String osVersion,
     String kernelVersion,

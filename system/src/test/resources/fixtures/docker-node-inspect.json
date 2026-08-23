@@ -1,0 +1,109 @@
+[
+    {
+        "ID": "iwbwrdui2z0n62kqcjfo1erwh",
+        "Version": {
+            "Index": 234415
+        },
+        "CreatedAt": "2026-08-08T07:04:02.737121551Z",
+        "UpdatedAt": "2026-08-23T12:27:33.948524386Z",
+        "Spec": {
+            "Labels": {},
+            "Role": "manager",
+            "Availability": "active"
+        },
+        "Description": {
+            "Hostname": "DESKTOP-3630IEI",
+            "Platform": {
+                "Architecture": "x86_64",
+                "OS": "linux"
+            },
+            "Resources": {
+                "NanoCPUs": 24000000000,
+                "MemoryBytes": 33529409536
+            },
+            "Engine": {
+                "EngineVersion": "29.7.2",
+                "Plugins": [
+                    {
+                        "Type": "Log",
+                        "Name": "awslogs"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "fluentd"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "gcplogs"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "gelf"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "journald"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "json-file"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "local"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "splunk"
+                    },
+                    {
+                        "Type": "Log",
+                        "Name": "syslog"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "bridge"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "host"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "ipvlan"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "macvlan"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "null"
+                    },
+                    {
+                        "Type": "Network",
+                        "Name": "overlay"
+                    },
+                    {
+                        "Type": "Volume",
+                        "Name": "local"
+                    }
+                ]
+            },
+            "TLSInfo": {
+                "TrustRoot": "-----BEGIN CERTIFICATE-----\nMIIBajCCARCgAwIBAgIURslKOO3Rn/ObZHgMXCP2q13jMq8wCgYIKoZIzj0EAwIw\nEzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMjYwODA4MDY1OTAwWhcNNDYwODAzMDY1\nOTAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABHqAvyMDu/5GO/PMbrpMxCtUlMIdvkBFHOon7vJ4/usqGHjSOIBKJljpCSBD\n1VpdDSn+i3uXJekTVo4WodXSnVKjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB\nAf8EBTADAQH/MB0GA1UdDgQWBBT8+/bDtLz5bq8WWN9rfswjbzrLkTAKBggqhkjO\nPQQDAgNIADBFAiA6kJjxbSt30Ui/2PYb+L+ZHfcIkCdNxq5yqvgrrilw7wIhAJvb\nIqV/ZXcVa4xG8ykVYTulgPmbMTTSW/lUrHtagxbS\n-----END CERTIFICATE-----\n",
+                "CertIssuerSubject": "MBMxETAPBgNVBAMTCHN3YXJtLWNh",
+                "CertIssuerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEeoC/IwO7/kY788xuukzEK1SUwh2+QEUc6ifu8nj+6yoYeNI4gEomWOkJIEPVWl0NKf6Le5cl6RNWjhah1dKdUg=="
+            }
+        },
+        "Status": {
+            "State": "ready",
+            "Addr": "192.168.152.4"
+        },
+        "ManagerStatus": {
+            "Leader": true,
+            "Reachability": "reachable",
+            "Addr": "192.168.152.4:2377"
+        }
+    }
+]

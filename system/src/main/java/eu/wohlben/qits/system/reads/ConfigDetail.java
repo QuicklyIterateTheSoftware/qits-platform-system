@@ -14,7 +14,9 @@ import java.util.Map;
  * secret is the other thing, and swarm does not return those values at all, so there is nothing
  * here that could leak one by accident.
  *
- * @param data the config's bytes as text; swarm base64-encodes them on the wire
+ * @param data the config's bytes as text; swarm base64-encodes them on the wire. Empty, never
+ *     null, so a client renders a document rather than the word "null" — and empty with
+ *     {@code binary} set is the honest answer for bytes that are not text
  * @param binary true when the bytes are not valid UTF-8 — the client shows a note rather than mojibake
  */
 public record ConfigDetail(
@@ -28,7 +30,7 @@ public record ConfigDetail(
 
   public static ConfigDetail from(JsonNode node) {
     String encoded = Json.textAt(node, "Spec", "Data");
-    String decoded = null;
+    String decoded = "";
     boolean binary = false;
     if (encoded != null && !encoded.isBlank()) {
       try {
@@ -38,7 +40,7 @@ public record ConfigDetail(
         // a page of replacement characters and calling it the config.
         binary = !java.util.Arrays.equals(bytes, decoded.getBytes(StandardCharsets.UTF_8));
         if (binary) {
-          decoded = null;
+          decoded = "";
         }
       } catch (IllegalArgumentException e) {
         binary = true;

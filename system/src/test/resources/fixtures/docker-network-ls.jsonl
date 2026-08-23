@@ -1,0 +1,7 @@
+{"CreatedAt":"2026-08-23 14:27:32.630770317 +0200 CEST","Driver":"bridge","ID":"64cafc9629ba","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"bridge","Scope":"local"}
+{"CreatedAt":"2026-08-08 09:04:03.581503689 +0200 CEST","Driver":"bridge","ID":"fe3541ab03dc","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"docker_gwbridge","Scope":"local"}
+{"CreatedAt":"2026-08-08 09:03:48.50675509 +0200 CEST","Driver":"host","ID":"97a14d9439fa","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"host","Scope":"local"}
+{"CreatedAt":"2026-08-08 07:04:02.737169146 +0000 UTC","Driver":"overlay","ID":"zhbthjltdnna","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"ingress","Scope":"swarm"}
+{"CreatedAt":"2026-08-08 09:03:48.49169397 +0200 CEST","Driver":"null","ID":"d0e44f8ebae1","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"none","Scope":"local"}
+{"CreatedAt":"2026-08-18 02:13:24.298439694 +0000 UTC","Driver":"overlay","ID":"mulnl3uqqi0h","IPv4":"true","IPv6":"false","Internal":"false","Labels":"","Name":"qits-net","Scope":"swarm"}
+{"CreatedAt":"2026-08-18 02:27:25.652872697 +0000 UTC","Driver":"overlay","ID":"pvpwrbmp3vqy","IPv4":"true","IPv6":"false","Internal":"false","Labels":"qits.platform.deployments.network=platform","Name":"qits-platform","Scope":"swarm"}

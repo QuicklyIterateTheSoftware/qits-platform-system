@@ -1,0 +1,328 @@
+[
+ {
+  "Id": "b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17",
+  "Created": "2026-08-23T12:28:51.9948477Z",
+  "Path": "/work/qits-ci",
+  "Args": [
+   "-Dquarkus.http.host=0.0.0.0"
+  ],
+  "State": {
+   "Status": "running",
+   "Running": true,
+   "Paused": false,
+   "Restarting": false,
+   "OOMKilled": false,
+   "Dead": false,
+   "Pid": 13549,
+   "ExitCode": 0,
+   "Error": "",
+   "StartedAt": "2026-08-23T12:28:52.082646669Z",
+   "FinishedAt": "0001-01-01T00:00:00Z",
+   "Health": {
+    "Status": "healthy",
+    "FailingStreak": 0,
+    "Log": [
+     {
+      "Start": "2026-08-23T18:37:28.020418777+02:00",
+      "End": "2026-08-23T18:37:28.055344566+02:00",
+      "ExitCode": 0,
+      "Output": "{\n    \"status\": \"UP\",\n    \"checks\": [\n        {\n            \"name\": \"ci-daemon-pin\",\n            \"status\": \"UP\"\n        },\n        {\n            \"name\": \"Database connections health check\",\n            \"status\": \"UP\",\n            \"data\": {\n                \"ci\": \"UP\",\n                \"eventstream\": \"UP\"\n            }\n        }\n    ]\n}"
+     },
+     {
+      "Start": "2026-08-23T18:37:31.05581478+02:00",
+      "End": "2026-08-23T18:37:31.091638001+02:00",
+      "ExitCode": 0,
+      "Output": "{\n    \"status\": \"UP\",\n    \"checks\": [\n        {\n            \"name\": \"ci-daemon-pin\",\n            \"status\": \"UP\"\n        },\n        {\n            \"name\": \"Database connections health check\",\n            \"status\": \"UP\",\n            \"data\": {\n                \"ci\": \"UP\",\n                \"eventstream\": \"UP\"\n            }\n        }\n    ]\n}"
+     },
+     {
+      "Start": "2026-08-23T18:37:34.093060154+02:00",
+      "End": "2026-08-23T18:37:34.12811072+02:00",
+      "ExitCode": 0,
+      "Output": "{\n    \"status\": \"UP\",\n    \"checks\": [\n        {\n            \"name\": \"ci-daemon-pin\",\n            \"status\": \"UP\"\n        },\n        {\n            \"name\": \"Database connections health check\",\n            \"status\": \"UP\",\n            \"data\": {\n                \"ci\": \"UP\",\n                \"eventstream\": \"UP\"\n            }\n        }\n    ]\n}"
+     },
+     {
+      "Start": "2026-08-23T18:37:37.128379267+02:00",
+      "End": "2026-08-23T18:37:37.164867092+02:00",
+      "ExitCode": 0,
+      "Output": "{\n    \"status\": \"UP\",\n    \"checks\": [\n        {\n            \"name\": \"ci-daemon-pin\",\n            \"status\": \"UP\"\n        },\n        {\n            \"name\": \"Database connections health check\",\n            \"status\": \"UP\",\n            \"data\": {\n                \"ci\": \"UP\",\n                \"eventstream\": \"UP\"\n            }\n        }\n    ]\n}"
+     },
+     {
+      "Start": "2026-08-23T18:37:40.16509095+02:00",
+      "End": "2026-08-23T18:37:40.199021439+02:00",
+      "ExitCode": 0,
+      "Output": "{\n    \"status\": \"UP\",\n    \"checks\": [\n        {\n            \"name\": \"ci-daemon-pin\",\n            \"status\": \"UP\"\n        },\n        {\n            \"name\": \"Database connections health check\",\n            \"status\": \"UP\",\n            \"data\": {\n                \"ci\": \"UP\",\n                \"eventstream\": \"UP\"\n            }\n        }\n    ]\n}"
+     }
+    ]
+   }
+  },
+  "Image": "sha256:14beaf669b73a3a348fe5c82e7129f42394a933dd8b81e358e430964148397bb",
+  "ResolvConfPath": "/var/lib/docker/containers/b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17/resolv.conf",
+  "HostnamePath": "/var/lib/docker/containers/b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17/hostname",
+  "HostsPath": "/var/lib/docker/containers/b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17/hosts",
+  "LogPath": "/var/lib/docker/containers/b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17/b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17-json.log",
+  "Name": "/dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m",
+  "RestartCount": 0,
+  "Driver": "overlayfs",
+  "Platform": "linux",
+  "MountLabel": "",
+  "ProcessLabel": "",
+  "AppArmorProfile": "",
+  "ExecIDs": null,
+  "HostConfig": {
+   "Binds": null,
+   "ContainerIDFile": "",
+   "LogConfig": {
+    "Type": "json-file",
+    "Config": {}
+   },
+   "NetworkMode": "bridge",
+   "PortBindings": {},
+   "RestartPolicy": {
+    "Name": "no",
+    "MaximumRetryCount": 0
+   },
+   "AutoRemove": false,
+   "VolumeDriver": "",
+   "VolumesFrom": null,
+   "ConsoleSize": [
+    0,
+    0
+   ],
+   "CapAdd": null,
+   "CapDrop": null,
+   "CgroupnsMode": "private",
+   "Dns": null,
+   "DnsOptions": null,
+   "DnsSearch": null,
+   "ExtraHosts": null,
+   "GroupAdd": null,
+   "IpcMode": "private",
+   "Cgroup": "",
+   "Links": null,
+   "OomScoreAdj": 0,
+   "PidMode": "",
+   "Privileged": false,
+   "PublishAllPorts": false,
+   "ReadonlyRootfs": false,
+   "SecurityOpt": null,
+   "UTSMode": "",
+   "UsernsMode": "",
+   "ShmSize": 67108864,
+   "Runtime": "runc",
+   "Isolation": "default",
+   "CpuShares": 0,
+   "Memory": 0,
+   "NanoCpus": 0,
+   "CgroupParent": "",
+   "BlkioWeight": 0,
+   "BlkioWeightDevice": null,
+   "BlkioDeviceReadBps": null,
+   "BlkioDeviceWriteBps": null,
+   "BlkioDeviceReadIOps": null,
+   "BlkioDeviceWriteIOps": null,
+   "CpuPeriod": 0,
+   "CpuQuota": 0,
+   "CpuRealtimePeriod": 0,
+   "CpuRealtimeRuntime": 0,
+   "CpusetCpus": "",
+   "CpusetMems": "",
+   "Devices": null,
+   "DeviceCgroupRules": null,
+   "DeviceRequests": null,
+   "MemoryReservation": 0,
+   "MemorySwap": 0,
+   "MemorySwappiness": null,
+   "OomKillDisable": null,
+   "PidsLimit": null,
+   "Ulimits": [],
+   "CpuCount": 0,
+   "CpuPercent": 0,
+   "IOMaximumIOps": 0,
+   "IOMaximumBandwidth": 0,
+   "MaskedPaths": [
+    "/proc/acpi",
+    "/proc/asound",
+    "/proc/interrupts",
+    "/proc/kcore",
+    "/proc/keys",
+    "/proc/latency_stats",
+    "/proc/sched_debug",
+    "/proc/scsi",
+    "/proc/timer_list",
+    "/proc/timer_stats",
+    "/sys/devices/virtual/powercap",
+    "/sys/firmware"
+   ],
+   "ReadonlyPaths": [
+    "/proc/bus",
+    "/proc/fs",
+    "/proc/irq",
+    "/proc/sys",
+    "/proc/sysrq-trigger"
+   ],
+   "Init": false
+  },
+  "Storage": {
+   "RootFS": {
+    "Snapshot": {
+     "Name": "overlayfs"
+    }
+   }
+  },
+  "Mounts": [],
+  "Config": {
+   "Hostname": "b248472f7a8e",
+   "Domainname": "",
+   "User": "1001",
+   "AttachStdin": false,
+   "AttachStdout": false,
+   "AttachStderr": false,
+   "ExposedPorts": {
+    "8080/tcp": {}
+   },
+   "Tty": false,
+   "OpenStdin": false,
+   "StdinOnce": false,
+   "Env": [
+    "QITS_ENVIRONMENT=dev",
+    "QITS_APPLICATION=qits-ci",
+    "OTEL_RESOURCE_ATTRIBUTES=service.version=3e501b6684b14a4ffdc0e956ef3af58e1573730b,deployment.environment.name=dev,service.instance.id=dev-qits-ci",
+    "QUARKUS_OTEL_RESOURCE_ATTRIBUTES=service.version=3e501b6684b14a4ffdc0e956ef3af58e1573730b,deployment.environment.name=dev,service.instance.id=dev-qits-ci",
+    "QITS_RESOURCE_DB_URL=jdbc:postgresql://dev-qits-oci-postgresql:5432/qits_ci",
+    "QITS_RESOURCE_DB_USERNAME=qits_ci",
+    "QITS_RESOURCE_DB_PASSWORD=not-a-real-secret-scrubbed-for-the-fixture",
+    "QITS_RESOURCE_EVENTSTREAM_URL=jdbc:postgresql://dev-qits-oci-postgresql:5432/qits_ci_eventstream",
+    "QITS_RESOURCE_EVENTSTREAM_USERNAME=qits_ci_eventstream",
+    "QITS_RESOURCE_EVENTSTREAM_PASSWORD=not-a-real-secret-scrubbed-for-the-fixture",
+    "QITS_ARTIFACTS_DOCS_URL=http://dev-qits-artifacts:8080/artifacts/docs/docs",
+    "QITS_ARTIFACTS_MAVEN_REGISTRY_URL=http://dev-qits-artifacts:8080/artifacts/maven/maven",
+    "QITS_ARTIFACTS_NPM_HOSTED_URL=http://dev-qits-artifacts:8080/artifacts/npm/npm/",
+    "QITS_ARTIFACTS_NPM_PROXY_URL=http://qits-platform-mirror:8080/artifacts/npm/npmjs/",
+    "QITS_ARTIFACTS_REGISTRY_HOST=registry.dev.localhost:8080",
+    "QITS_AUTH_MACHINE_AUDIENCE=dev-qits-ci",
+    "QITS_AUTH_MACHINE_REQUIRED=true",
+    "QITS_CI_CONCURRENT_BUILDS=2",
+    "QITS_CI_CONTAINER_DAEMON_URL=ws://dev-qits-ci:8080/ci/daemon",
+    "QITS_CI_CONTAINER_GIT_AUDIENCE=dev-qits-githost",
+    "QITS_CI_CONTAINER_GIT_URL=http://githost.dev.internal:8080",
+    "QITS_CI_CPUS=4",
+    "QITS_CI_DAEMON_BINARY_URL_TEMPLATE=http://dev-qits-artifacts:8080/artifacts/daemons/qits-ci-daemon/{version}",
+    "QITS_CI_DAEMON_VERSION=dfdafe1feef2b0359731f99558e8cbdefe8caa6504a7cef1053680fd7803928d",
+    "QITS_CI_DOCKER_AUTH_HOSTS=registry.dev.localhost:8080,mirror.dev.localhost:8080",
+    "QITS_CI_GIT_HOST_URL=http://dev-qits-githost:8080",
+    "QITS_CI_MEMORY_LIMIT=4g",
+    "QITS_CI_NETWORK=qits-net",
+    "QITS_CI_WORKSPACES_URL=http://dev-qits-workspaces:8080",
+    "QITS_CONTAINERS_URL=http://dev-qits-containers:8080",
+    "QITS_EVENTS_URL=http://qits-events:8080",
+    "QITS_OBSERVABILITY_URL=http://dev-qits-observability:8080",
+    "QUARKUS_OIDC_AUTH_SERVER_URL=http://qits-platform-idp:8080/idp",
+    "QUARKUS_OIDC_CLIENT_AUTH_SERVER_URL=http://qits-platform-idp:8080/idp",
+    "QUARKUS_OIDC_CLIENT_CLIENT_ENABLED=true",
+    "QUARKUS_OIDC_CLIENT_CLIENT_ID=dev-qits-ci",
+    "QUARKUS_OIDC_CLIENT_CREDENTIALS_SECRET=not-a-real-secret-scrubbed-for-the-fixture",
+    "QUARKUS_OIDC_CLIENT_GITHOST_AUTH_SERVER_URL=http://qits-platform-idp:8080/idp",
+    "QUARKUS_OIDC_CLIENT_GITHOST_CLIENT_ENABLED=true",
+    "QUARKUS_OIDC_CLIENT_GITHOST_CLIENT_ID=dev-qits-ci",
+    "QUARKUS_OIDC_CLIENT_GITHOST_CREDENTIALS_SECRET=not-a-real-secret-scrubbed-for-the-fixture",
+    "QUARKUS_OIDC_CLIENT_GITHOST_GRANT_OPTIONS_CLIENT_AUDIENCE=dev-qits-githost",
+    "QUARKUS_OIDC_CLIENT_GRANT_OPTIONS_CLIENT_AUDIENCE=dev-qits-containers",
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "container=oci"
+   ],
+   "Cmd": null,
+   "Healthcheck": {
+    "Test": [
+     "CMD-SHELL",
+     "curl -fsS http://localhost:8080/ci/q/health/ready || exit 1"
+    ],
+    "Interval": 3000000000,
+    "StartPeriod": 10000000000,
+    "Retries": 3
+   },
+   "Image": "registry.dev.localhost:8080/qits/qits-ci:3e501b6684b14a4ffdc0e956ef3af58e1573730b",
+   "Volumes": null,
+   "WorkingDir": "/work",
+   "Entrypoint": [
+    "/work/qits-ci",
+    "-Dquarkus.http.host=0.0.0.0"
+   ],
+   "Labels": {
+    "architecture": "x86_64",
+    "build-date": "2025-10-15T08:06:12Z",
+    "com.docker.swarm.node.id": "iwbwrdui2z0n62kqcjfo1erwh",
+    "com.docker.swarm.service.id": "qz3slj0owlxdwtpyur3tp8mef",
+    "com.docker.swarm.service.name": "dev-qits-ci",
+    "com.docker.swarm.task": "",
+    "com.docker.swarm.task.id": "k4g0nn1ld7o272jl7fciatg6m",
+    "com.docker.swarm.task.name": "dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m",
+    "com.redhat.component": "ubi9-minimal-container",
+    "com.redhat.license_terms": "https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",
+    "cpe": "cpe:/a:redhat:enterprise_linux:9::appstream",
+    "description": "The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+    "distribution-scope": "public",
+    "io.buildah.version": "1.41.4",
+    "io.k8s.description": "The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+    "io.k8s.display-name": "Red Hat Universal Base Image 9 Minimal",
+    "io.openshift.expose-services": "",
+    "io.openshift.tags": "minimal rhel9",
+    "maintainer": "Red Hat, Inc.",
+    "name": "ubi9/ubi-minimal",
+    "org.opencontainers.image.revision": "d1b15a34ce69ea214e1d32f1f501304f6b8b8c59",
+    "qits.platform.deployments.app-name": "qits-ci",
+    "qits.platform.deployments.application": "a97da580-65c4-4ec6-982e-1f44b28ac7b2:qits-ci",
+    "qits.platform.deployments.available-on-env": "false",
+    "qits.platform.deployments.deployment": "2bc5f42a-9d87-4415-b2f8-bce6f23a6f52",
+    "qits.platform.deployments.environment": "a97da580-65c4-4ec6-982e-1f44b28ac7b2",
+    "qits.platform.deployments.target": "environment",
+    "release": "1760515502",
+    "summary": "Provides the latest release of the minimal Red Hat Universal Base Image 9.",
+    "url": "https://catalog.redhat.com/en/search?searchType=containers",
+    "vcs-ref": "d1b15a34ce69ea214e1d32f1f501304f6b8b8c59",
+    "vcs-type": "git",
+    "vendor": "Red Hat, Inc.",
+    "version": "9.6"
+   }
+  },
+  "NetworkSettings": {
+   "SandboxID": "3fb3b8dc2c188757bc93729b05bd3c9cda640f227f66990964947b0080c77e2c",
+   "SandboxKey": "/var/run/docker/netns/3fb3b8dc2c18",
+   "Ports": {
+    "8080/tcp": null
+   },
+   "Networks": {
+    "qits-net": {
+     "IPAMConfig": {
+      "IPv4Address": "10.0.1.29"
+     },
+     "Links": null,
+     "Aliases": null,
+     "DriverOpts": null,
+     "GwPriority": 0,
+     "NetworkID": "mulnl3uqqi0hkr0yuutakpyed",
+     "EndpointID": "64347dca2c06696f73dd94743ea02ef82f0d7e2126620d4985d145638f822309",
+     "Gateway": "",
+     "IPAddress": "10.0.1.29",
+     "MacAddress": "02:42:0a:00:01:1d",
+     "IPPrefixLen": 24,
+     "IPv6Gateway": "",
+     "GlobalIPv6Address": "",
+     "GlobalIPv6PrefixLen": 0,
+     "DNSNames": [
+      "dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m",
+      "b248472f7a8e"
+     ]
+    }
+   }
+  },
+  "ImageManifestDescriptor": {
+   "mediaType": "application/vnd.oci.image.manifest.v1+json",
+   "digest": "sha256:14beaf669b73a3a348fe5c82e7129f42394a933dd8b81e358e430964148397bb",
+   "size": 1049,
+   "platform": {
+    "architecture": "amd64",
+    "os": "linux"
+   }
+  }
+ }
+]

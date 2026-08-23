@@ -1,0 +1,167 @@
+package eu.wohlben.qits.system.reads;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+/** The swarm parsers, against real `node`, `service`, `config` and `secret` output. */
+class SwarmParsersTest {
+
+  @Test
+  void readsANodeList() {
+    List<NodeSummary> nodes =
+        Fixtures.lines("docker-node-ls.jsonl").stream().map(NodeSummary::from).toList();
+
+    assertEquals(1, nodes.size());
+    NodeSummary node = nodes.get(0);
+    assertEquals("iwbwrdui2z0n62kqcjfo1erwh", node.id());
+    assertEquals("DESKTOP-3630IEI", node.hostname());
+    assertEquals("Ready", node.status());
+    assertEquals("Active", node.availability());
+    assertEquals("Leader", node.managerStatus());
+    // Derived: the list has no Role column, and a node with any manager status IS a manager.
+    assertEquals("manager", node.role());
+    assertEquals("29.7.2", node.engineVersion());
+    // The one field the client changes its behaviour on: only this node can be looked into.
+    assertTrue(node.self());
+  }
+
+  @Test
+  void readsANodeDocument() {
+    NodeDetail node = NodeDetail.from(Fixtures.array("docker-node-inspect.json").get(0));
+
+    assertEquals("iwbwrdui2z0n62kqcjfo1erwh", node.id());
+    assertEquals("DESKTOP-3630IEI", node.hostname());
+    assertEquals("manager", node.role());
+    assertEquals("active", node.availability());
+    assertEquals("ready", node.status());
+    assertEquals("192.168.152.4", node.address());
+    assertEquals("29.7.2", node.engineVersion());
+    assertEquals("x86_64", node.architecture());
+    assertEquals("linux", node.os());
+    // Reported as nanocores, shown as cores.
+    assertEquals(24.0, node.cpus(), 0.001);
+    assertTrue(node.memoryBytes() > 0);
+    // Rebuilt in the LIST's vocabulary, so a detail page and the row it was opened from agree.
+    assertEquals("Leader", node.managerStatus());
+  }
+
+  @Test
+  void readsAServiceList() {
+    List<ServiceSummary> services =
+        Fixtures.lines("docker-service-ls.jsonl").stream().map(ServiceSummary::from).toList();
+
+    assertEquals(3, services.size());
+    ServiceSummary first = services.get(0);
+    assertEquals("dev-qits-artifacts", first.name());
+    assertEquals("replicated", first.mode());
+    // The CLI's own running-over-desired string, which is the number a list is scanned for.
+    assertEquals("1/1", first.replicas());
+    assertTrue(first.image().startsWith("registry.dev.localhost:8080/qits/qits-artifacts:"));
+  }
+
+  @Test
+  void readsAServiceDocumentAndNeverItsEnvironmentValues() {
+    List<TaskSummary> tasks =
+        Fixtures.lines("docker-service-ps.jsonl").stream().map(TaskSummary::from).toList();
+
+    ServiceDetail service =
+        ServiceDetail.from(Fixtures.array("docker-service-inspect.json").get(0), tasks);
+
+    assertEquals("dev-qits-artifacts", service.name());
+    assertEquals("replicated", service.mode());
+    // The list's own string, rebuilt: one task is Running of the one replica wanted.
+    assertEquals("1/1", service.replicas());
+    assertEquals("stop-first", service.updateOrder());
+    assertEquals("rollback", service.updateFailureAction());
+    assertEquals("any", service.restartCondition());
+    assertEquals(
+        "qits-artifacts", service.labels().get("qits.platform.deployments.app-name"));
+    assertEquals(1, service.networks().size());
+    assertEquals("10.0.1.110/24", service.networks().get(0).address());
+
+    // THE POINT OF THIS TEST. The captured service is a real platform one whose environment
+    // carried a database password; the fixture scrubbed it to a marker, and the marker must not
+    // survive into anything this service returns.
+    assertTrue(
+        service.envKeys().contains("QITS_RESOURCE_DB_PASSWORD"),
+        "the KEY is diagnostic and is kept: " + service.envKeys());
+    assertFalse(
+        service.envKeys().stream().anyMatch(key -> key.contains("=")),
+        "a key must never carry its value: " + service.envKeys());
+    assertFalse(
+        service.toString().contains("not-a-real-secret"),
+        "no environment VALUE may reach the wire");
+  }
+
+  @Test
+  void readsTheTasksWithTheirUntruncatedErrors() {
+    List<TaskSummary> tasks =
+        Fixtures.lines("docker-service-ps.jsonl").stream().map(TaskSummary::from).toList();
+
+    assertEquals(5, tasks.size());
+    assertEquals("Running", tasks.get(0).desiredState());
+    assertEquals("DESKTOP-3630IEI", tasks.get(0).nodeHostname());
+    // Derived from the task name, which swarm spells <service>.<slot>.
+    assertEquals(1, tasks.get(0).slot());
+    // `--no-trunc` is why this is readable: the default cuts the error off mid-sentence, and the
+    // error is the whole reason anybody opens a task list.
+    TaskSummary failed = tasks.get(1);
+    assertEquals("Shutdown", failed.desiredState());
+    assertTrue(failed.state().startsWith("Failed"));
+    assertTrue(failed.error().contains("No such container"), failed.error());
+  }
+
+  @Test
+  void readsConfigsAndDecodesTheirData() {
+    List<ConfigSummary> configs =
+        Fixtures.lines("docker-config-ls.jsonl").stream().map(ConfigSummary::from).toList();
+    assertEquals(2, configs.size());
+    assertEquals("qits-edge-vhosts", configs.get(0).name());
+    assertEquals("platform", configs.get(0).labels().get("qits.platform.deployments.target"));
+    assertTrue(configs.get(1).labels().isEmpty(), "an unlabelled config has no labels, not a null");
+
+    ConfigDetail detail = ConfigDetail.from(Fixtures.array("docker-config-inspect.json").get(0));
+    assertEquals("qits-edge-vhosts", detail.name());
+    assertFalse(detail.binary());
+    // Swarm base64-encodes the bytes; showing them is the point of a config detail.
+    assertEquals("registry.dev.localhost -> qits-artifacts\n", detail.data());
+  }
+
+  @Test
+  void readsSecretsAsMetadataOnly() {
+    List<SecretSummary> secrets =
+        Fixtures.lines("docker-secret-ls.jsonl").stream().map(SecretSummary::from).toList();
+
+    assertEquals(1, secrets.size());
+    assertEquals("qits-platform-idp-signing-key", secrets.get(0).name());
+    // There is no `data` component on this record to fill. Not a policy this service enforces:
+    // swarm returns no secret value to anybody, so there is nothing here that could leak one.
+    assertFalse(
+        java.util.Arrays.stream(SecretSummary.class.getRecordComponents())
+            .anyMatch(component -> component.getName().equals("data")),
+        "there is no component here for a value to be put in");
+  }
+
+  @Test
+  void aBinaryConfigSaysSoRatherThanReturningMojibake() {
+    // 0xFF 0xFE is not valid UTF-8; a decode would answer replacement characters and call them
+    // the config.
+    var node =
+        Fixtures.array("docker-config-inspect.json")
+            .get(0)
+            .deepCopy()
+            .<com.fasterxml.jackson.databind.node.ObjectNode>deepCopy();
+    ((com.fasterxml.jackson.databind.node.ObjectNode) node.get("Spec")).put("Data", "//4=");
+
+    ConfigDetail detail = ConfigDetail.from(node);
+
+    assertTrue(detail.binary());
+    // Empty rather than null: the client renders a document, and `binary` is what says why it is
+    // empty.
+    assertEquals("", detail.data());
+  }
+}

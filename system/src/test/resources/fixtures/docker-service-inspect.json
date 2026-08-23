@@ -1,0 +1,112 @@
+[
+ {
+  "ID": "l2izhr0o4tjq34f7arurhgmm8",
+  "Version": {
+   "Index": 234413
+  },
+  "CreatedAt": "2026-08-18T02:32:15.775211499Z",
+  "UpdatedAt": "2026-08-23T12:27:33.349751944Z",
+  "Spec": {
+   "Name": "dev-qits-artifacts",
+   "Labels": {
+    "qits.platform.deployments.app-name": "qits-artifacts",
+    "qits.platform.deployments.application": "a97da580-65c4-4ec6-982e-1f44b28ac7b2:qits-artifacts",
+    "qits.platform.deployments.available-on-env": "false",
+    "qits.platform.deployments.deployment": "6d04606f-9a62-40e4-89e1-df9d968e9b8f",
+    "qits.platform.deployments.environment": "a97da580-65c4-4ec6-982e-1f44b28ac7b2",
+    "qits.platform.deployments.target": "environment"
+   },
+   "TaskTemplate": {
+    "ContainerSpec": {
+     "Image": "registry.dev.localhost:8080/qits/qits-artifacts:09920e6776147506b241e2a177cfc8bb6b01362c",
+     "Labels": {
+      "qits.platform.deployments.app-name": "qits-artifacts",
+      "qits.platform.deployments.application": "a97da580-65c4-4ec6-982e-1f44b28ac7b2:qits-artifacts",
+      "qits.platform.deployments.available-on-env": "false",
+      "qits.platform.deployments.deployment": "6d04606f-9a62-40e4-89e1-df9d968e9b8f",
+      "qits.platform.deployments.environment": "a97da580-65c4-4ec6-982e-1f44b28ac7b2",
+      "qits.platform.deployments.target": "environment"
+     },
+     "Env": [
+      "QITS_ENVIRONMENT=dev",
+      "QITS_APPLICATION=qits-artifacts",
+      "OTEL_RESOURCE_ATTRIBUTES=service.version=09920e6776147506b241e2a177cfc8bb6b01362c,deployment.environment.name=dev,service.instance.id=dev-qits-artifacts",
+      "QUARKUS_OTEL_RESOURCE_ATTRIBUTES=service.version=09920e6776147506b241e2a177cfc8bb6b01362c,deployment.environment.name=dev,service.instance.id=dev-qits-artifacts",
+      "QITS_RESOURCE_DB_URL=jdbc:postgresql://dev-qits-oci-postgresql:5432/qits_artifacts",
+      "QITS_RESOURCE_DB_USERNAME=qits_artifacts",
+      "QITS_RESOURCE_DB_PASSWORD=not-a-real-secret-scrubbed-for-the-fixture",
+      "QITS_ARTIFACTS_GC_PINS_CD_BASE_URL=http://qits-deployments:8080/platform-deployments/api",
+      "QITS_ARTIFACTS_GC_PINS_CI_BASE_URL=http://dev-qits-ci:8080/ci/api",
+      "QITS_AUTH_MACHINE_AUDIENCE=dev-qits-artifacts",
+      "QITS_AUTH_MACHINE_REQUIRED=true",
+      "QITS_OBSERVABILITY_URL=http://dev-qits-observability:8080",
+      "QUARKUS_OIDC_AUTH_SERVER_URL=http://qits-platform-idp:8080/idp"
+     ],
+     "Init": false,
+     "StopGracePeriod": 10000000000,
+     "Healthcheck": {
+      "Test": [
+       "CMD-SHELL",
+       "curl -fsS http://localhost:8080/artifacts/q/health/ready || exit 1"
+      ],
+      "Interval": 3000000000,
+      "StartPeriod": 10000000000,
+      "Retries": 3
+     },
+     "DNSConfig": {},
+     "Isolation": "default"
+    },
+    "Resources": {
+     "Limits": {},
+     "Reservations": {}
+    },
+    "RestartPolicy": {
+     "Condition": "any",
+     "Delay": 5000000000,
+     "MaxAttempts": 0
+    },
+    "Placement": {},
+    "Networks": [
+     {
+      "Target": "mulnl3uqqi0hkr0yuutakpyed"
+     }
+    ],
+    "ForceUpdate": 0,
+    "Runtime": "container"
+   },
+   "Mode": {
+    "Replicated": {
+     "Replicas": 1
+    }
+   },
+   "UpdateConfig": {
+    "Parallelism": 1,
+    "FailureAction": "rollback",
+    "Monitor": 30000000000,
+    "MaxFailureRatio": 0,
+    "Order": "stop-first"
+   },
+   "RollbackConfig": {
+    "Parallelism": 1,
+    "FailureAction": "pause",
+    "Monitor": 5000000000,
+    "MaxFailureRatio": 0,
+    "Order": "stop-first"
+   },
+   "EndpointSpec": {
+    "Mode": "vip"
+   }
+  },
+  "Endpoint": {
+   "Spec": {
+    "Mode": "vip"
+   },
+   "VirtualIPs": [
+    {
+     "NetworkID": "mulnl3uqqi0hkr0yuutakpyed",
+     "Addr": "10.0.1.110/24"
+    }
+   ]
+  }
+ }
+]

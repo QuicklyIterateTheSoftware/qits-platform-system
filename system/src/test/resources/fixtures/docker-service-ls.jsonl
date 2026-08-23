@@ -1,0 +1,3 @@
+{"ID":"l2izhr0o4tjq","Image":"registry.dev.localhost:8080/qits/qits-artifacts:09920e6776147506b241e2a177cfc8bb6b01362c","Mode":"replicated","Name":"dev-qits-artifacts","Ports":"","Replicas":"1/1"}
+{"ID":"qz3slj0owlxd","Image":"registry.dev.localhost:8080/qits/qits-ci:3e501b6684b14a4ffdc0e956ef3af58e1573730b","Mode":"replicated","Name":"dev-qits-ci","Ports":"","Replicas":"1/1"}
+{"ID":"u1nb7mzq4mtf","Image":"registry.dev.localhost:8080/qits/qits-configuration:15d2d7ba35cf09468ccbf075e6818929411616b7","Mode":"replicated","Name":"dev-qits-configuration","Ports":"","Replicas":"1/1"}
