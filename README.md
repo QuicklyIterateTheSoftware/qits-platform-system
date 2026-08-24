@@ -4,7 +4,9 @@ The base system panels: the machine the platform runs on, the swarm it forms, an
 either. It exists so that looking at the host stops meaning `ssh`.
 
 One PLATFORM service — one instance per machine, not one per environment — serving its own Angular
-client at `/system/`, its API at `/system/api` and its health at `/system/q/health/ready`.
+client at `/` on its own host, `system.<env>.<domain>`, with its API at `/system/api` and its health
+at `/system/q/health/ready`. The machine surface keeps its segment and is path-routed on every host,
+so the client's same-origin calls and its terminal socket dial are unchanged by the move.
 
 ## What it does
 

@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
  * asserts is exactly what that difference can lose:
  *
  * <ul>
- *   <li>the build-time route prefixes — {@code /system/api} and {@code /system/q} — which
- *       qits-gateway routes verbatim and no unprefixed form falls back to;
+ *   <li>the build-time route prefixes — {@code /system/api} and {@code /system/q} — which the edge
+ *       path-routes verbatim on every host and no unprefixed form falls back to;
  *   <li>every wire record surviving as something Jackson can write, which the build-time analysis
  *       cannot see through a {@code Response.entity(...)} — that is what {@link ApiWireReflection}
  *       is for, and a missing entry there is a 500 in the binary while the JVM suite stays green.
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *       setsid} is really in the runtime image, which nothing else does either;
  *   <li><b>the client is served, and does not swallow the API.</b> Quinoa is disabled by default in
  *       test mode, so no {@code @QuarkusTest} builds or serves the SPA and every assertion about
- *       {@code /system/} would pass against a process with no client in it.
+ *       {@code /} would pass against a process with no client in it.
  * </ul>
  *
  * <p><b>This is also the only place the identity contract is real.</b> A {@code @QuarkusTest} runs
@@ -63,7 +63,7 @@ public class PackagedSurfaceIT {
    * with {@code baseHref} in qits-platform-spa-system's angular.json, so the probes below double as
    * the check that all three still do.
    */
-  private static final String BASE_HREF = "<base href=\"/system/\">";
+  private static final String BASE_HREF = "<base href=\"/\">";
 
   private static final String CONTAINER = "dev-qits-ci.1.k4g0nn1ld7o272jl7fciatg6m";
 
@@ -106,13 +106,20 @@ public class PackagedSurfaceIT {
   }
 
   @Test
-  public void theRoutesAreWhereTheGatewayRoutesThemAndAMistypedOneIsNever200() {
+  public void theMachineRoutesAreUnderTheSegmentAndAMistypedOneAnswersNoData() {
     asAdmin().when().get("/system/api/overview").then().statusCode(200);
     asAdmin().when().get("/system/api/swarm/nodes").then().statusCode(200);
     asAdmin().when().get("/system/api/nodes/local/containers").then().statusCode(200);
 
-    // qits-gateway routes verbatim by prefix, so there is no unprefixed form to fall back to.
-    asAdmin().when().get("/api/overview").then().statusCode(404);
+    // The edge path-routes verbatim, so there is no unprefixed form to fall back to. The client sits
+    // at the root now, so an unprefixed path is inside the SPA fallback's reach and comes back as
+    // the page rather than as a 404 — which is right: /api belongs to no machine surface here.
+    asAdmin()
+        .when()
+        .get("/api/overview")
+        .then()
+        .statusCode(200)
+        .body(Matchers.containsString(BASE_HREF));
 
     String body =
         asAdmin().when().get("/system/api/nope").then().statusCode(404).extract().asString();
@@ -224,10 +231,10 @@ public class PackagedSurfaceIT {
    * 401. What is served here is a static bundle with no configuration in it.
    */
   @Test
-  public void theClientIsServedAtTheSegmentWithABaseHrefThatMatches() {
+  public void theClientIsServedAtTheRootWithABaseHrefThatMatches() {
     given()
         .when()
-        .get("/system/")
+        .get("/")
         .then()
         .statusCode(200)
         .contentType(ContentType.HTML)
@@ -235,7 +242,7 @@ public class PackagedSurfaceIT {
   }
 
   /**
-   * A deep link is the SPA fallback doing its job: {@code /system/nodes/local/containers} has no
+   * A deep link is the SPA fallback doing its job: {@code /swarm/nodes/local/containers} has no
    * file behind it, and {@code enable-spa-routing} is what makes a reload or a pasted link reach
    * the Angular router instead of a 404. An operator shares exactly these addresses.
    */
@@ -243,7 +250,7 @@ public class PackagedSurfaceIT {
   public void aDeepLinkFallsBackToTheClientSoTheAngularRouterOwnsIt() {
     given()
         .when()
-        .get("/system/nodes/local/containers")
+        .get("/swarm/nodes/local/containers")
         .then()
         .statusCode(200)
         .contentType(ContentType.HTML)
@@ -251,9 +258,10 @@ public class PackagedSurfaceIT {
   }
 
   /**
-   * THE HALF THAT COSTS SOMETHING IF IT IS WRONG. The SPA fallback is a late-order catch-all, so a
-   * path under {@code /system} that matches no route is rerouted to index.html and answers {@code
-   * 200 text/html} — unless {@code quarkus.quinoa.ignored-path-prefixes} claims it first.
+   * THE HALF THAT COSTS SOMETHING IF IT IS WRONG. The SPA fallback is a late-order catch-all over
+   * the WHOLE root now, so any path that matches no route is rerouted to index.html and answers
+   * {@code 200 text/html} — unless {@code quarkus.quinoa.ignored-path-prefixes} claims it first. Its
+   * one entry, {@code /system}, covers both machine prefixes: matching is by path segment.
    *
    * <p>The stake is the client's own polling: {@code GET /system/api/terminals} while a session
    * runs, which would hand a JSON parser an HTML document.
@@ -280,15 +288,28 @@ public class PackagedSurfaceIT {
   }
 
   /**
-   * A KNOWN WART, PINNED RATHER THAN FIXED. Quinoa mounts the client at {@code ui-root-path + "*"}
-   * — {@code /system/*} — which does not match the bare segment, so {@code /system} without the
-   * trailing slash is a 404 while {@code /system/} is the page (upstream quinoa issue #960). It
-   * affects every client on the platform identically and a redirect would be a gateway-level
-   * decision, so it is deliberately not solved per-service.
+   * THE BARE SEGMENT IS A MACHINE PATH AND ANSWERS LIKE ONE. {@code /system} is claimed by {@code
+   * ignored-path-prefixes}, so it never becomes the page; it belongs to no route either, so it is a
+   * 404. The old trailing-slash wart went with the move to the root — {@code /} is the client now,
+   * and there is no bare segment left for a reader to mistype.
    */
   @Test
-  public void theBareSegmentWithNoTrailingSlashIsStillA404() {
-    given().when().get("/system").then().statusCode(404);
+  public void theBareSegmentIsAMachinePathAndIsA404NeverThePage() {
+    given()
+        .when()
+        .get("/system")
+        .then()
+        .statusCode(404)
+        .body(Matchers.not(Matchers.containsString(BASE_HREF)));
+
+    // The old client address, which nothing serves any more. It is claimed by the same entry, so a
+    // stale bookmark gets a 404 rather than a page that would then fetch its assets from /.
+    given()
+        .when()
+        .get("/system/")
+        .then()
+        .statusCode(404)
+        .body(Matchers.not(Matchers.containsString(BASE_HREF)));
   }
 
   @Test
