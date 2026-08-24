@@ -48,3 +48,8 @@ navigation-entries: system.System:4
 # daemon being briefly unreachable is a 503 on a read, not a service that should be taken out of
 # rotation and restarted — a restart would kill every live terminal to fix nothing.
 health_path: /system/q/health/ready
+
+# Where the browsable API document lives: swagger-ui under this service's non-application
+# root, which sits under the primary route above. The shell's Api Docs viewer reads it off
+# /main-navigation and frames it for this repository.
+api-docs: /system/q/swagger-ui
