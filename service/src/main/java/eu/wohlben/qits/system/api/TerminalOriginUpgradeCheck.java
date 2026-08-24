@@ -16,8 +16,10 @@ import org.jboss.logging.Logger;
  * to whichever site an operator happened to visit while logged in.
  *
  * <p><b>The rule.</b> When the handshake carries an {@code Origin}, its host must be the host this
- * request was addressed to. Behind qits-gateway that is {@code X-Forwarded-Host}; direct, it is
- * {@code Host}. A handshake with NO {@code Origin} is allowed: browsers always send one, so the
+ * request was addressed to. Behind the edge that is {@code X-Forwarded-Host}; direct, it is {@code
+ * Host}. The rule survives this service having a host of its own: the page is served from {@code
+ * system.<env>.<domain>}, so the socket it opens carries that origin and the edge forwards that same
+ * name — the two agree, exactly as they did when the page came from the environment host. A handshake with NO {@code Origin} is allowed: browsers always send one, so the
  * absence means a non-browser client — a machine, a test, {@code websocat} — and those are not
  * subject to the attack this exists to stop (nobody's ambient credential is being borrowed).
  *

@@ -11,15 +11,21 @@
 # showing the same node twice, and each would sweep the other's terminal containers on boot.
 deployment_target: platform
 
-# One route for the whole segment: the client at /system/, the API at /system/api, the terminal
-# WebSocket at /system/api/terminals/{id} and the document at /system/q. qits-gateway routes
-# verbatim by prefix, so this one line reaches all four.
+# One route for this application's machine surface: the API at /system/api, the terminal WebSocket at
+# /system/api/terminals/{id} and the document at /system/q. The edge path-routes every application's
+# route prefix on EVERY host, so this one line keeps all three reachable wherever a reader is. The
+# client itself is no longer under it — it is served at / on this application's own host.
 routes: /system
 
-# The left-navigation entry, and the number is its position. 14 puts it after Maintenance:13 at the
-# end of the platform block the operator screens form — Githost:9, Mirror:10, Configuration:11,
-# Orchestrator:12, Maintenance:13 — rather than among the per-project doors.
-navigation: System:14
+# WHERE THIS APPLICATION HANGS IN THE SIDEBAR. `system` is the global group — what this shows is the
+# machine the whole platform runs on, which belongs to no project — and 4 is the position inside it,
+# after Orchestrator:3.
+#
+# The host is not spelled because the derived one is already right: the application name minus its
+# `qits-platform-` prefix is `system`, which is the label this service is served on. The terminal
+# socket's origin check needs that agreement: the page's origin and the forwarded host are the same
+# name, so the handshake passes.
+navigation-entries: system.System:4
 
 # NO `resources:` LINE, AND THAT IS THE DESIGN. This service is stateless: every answer is read from
 # the docker daemon at the moment it is asked, and the only state it holds is the in-memory registry
