@@ -7,7 +7,7 @@
     <parent>
         <groupId>eu.wohlben.qits</groupId>
         <artifactId>qits-platform-system</artifactId>
-        <version>2026.824.220010</version>
+        <version>2026.829.122824</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -104,6 +104,31 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- The user-story framework: TokenValidationBootstrapIT is written as a @UserStory, so
+                 the gate-on packaged-boot proof doubles as documentation — steps, interactions and
+                 a sequence diagram emitted under target/userstories/. Both stories are browserless
+                 (no Flow parameter), so the transitive Playwright never launches anything and
+                 nothing downloads a browser. Version from the root pom's dependencyManagement. -->
+            <groupId>${project.groupId}</groupId>
+            <artifactId>qits-userflows</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- The recording service mocks. That IT points quarkus.oidc at idp.MockIdp — a
+                 MockService plus key material: it serves the JWKS for a generated keypair, mints
+                 tokens, and records what it answered, which is what makes the startup fetch
+                 assertable from the IDP's end rather than only from this service's. -->
+            <groupId>${project.groupId}</groupId>
+            <artifactId>qits-service-mock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- NO ZONKY, HERE OR IN system/. This repository has no datasource at all — there is no
+             store, no Flyway and no qits-db-core, because every answer is read from the docker
+             daemon at the moment it is asked (the root pom says so at length). So the fourth
+             `-alpine` embedded-postgres architecture the userflow pipelines of qits-githost and
+             qits-platform-deployments carry has nothing to be for: no module here starts a
+             postgres, on Alpine or anywhere else. -->
     </dependencies>
 
     <build>
