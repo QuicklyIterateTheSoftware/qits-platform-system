@@ -23,6 +23,27 @@
 here=$(dirname "$0")
 printf '%s\n' "$*" >> "$here/calls.log"
 
+# THE SECOND RECORDING, and the one a userflow story reads. calls.log above is the argv at the
+# moment the call STARTED — one line, space-joined, which is the shape the surefire suite asserts
+# on and which nothing here changes. results.log carries the same argv with THE ANSWER beside it,
+# `<exit><TAB><arg><TAB><arg>…`, because "the call was answered" is the other half of the evidence:
+# a diagram drawn from the first file could only say a call was made, and a refusal — `container
+# inspect` on a name no daemon knows — is exactly a call that was made and said no.
+#
+# THE TWO INTERACTIVE VERBS RECORD ONCE, AT SPAWN, with the word `running` where a code would go.
+# An `exec -it` is not a completed call: it is a child on a pseudo-terminal that is still there
+# when the story looks at it, and the service ends it with SIGTERM (TerminalSession.terminate),
+# which no EXIT trap is guaranteed to survive. A code recorded there would be a code that sometimes
+# exists, which is worse than no code at all — see StoryDocker, which turns these lines into edges.
+tab=$(printf '\t')
+argv_tabbed=""
+for a in "$@"; do argv_tabbed="$argv_tabbed$tab$a"; done
+record() { printf '%s%s\n' "$1" "$argv_tabbed" >> "$here/results.log"; }
+case "${1:-}" in
+  exec|run) record running ;;
+  *) trap 'record "$?"' EXIT ;;
+esac
+
 # The container this fake knows about, and the id it answers with. 64 hex, because that is what the
 # daemon prints and the only thing the exec argv is allowed to carry.
 KNOWN_ID=b248472f7a8e00bba8cd036232373baed8856d90eb77b06c53f3eb0b321fdb17
@@ -35,7 +56,21 @@ STOPPED_ID=aa11bb22cc33dd44ee55ff6677889900aabbccddeeff00112233445566778899
 terminal() {
   # The trap is the point: the kernel sends SIGWINCH to the foreground process group of the
   # terminal's session, which this is only because `setsid --ctty` put it there.
-  trap 'stty size' WINCH
+  #
+  # IT SETS A FLAG, AND THE FLAG IS WHAT THE LOOP READS — not the exit status. This used to say "a
+  # read interrupted by a signal returns above 128; anything else is end of input", which is bash's
+  # behaviour and NOT dash's: measured on this host, dash's `read` answers 1 for BOTH end of input
+  # and a read a trapped signal interrupted, so the status cannot tell them apart. What that cost
+  # was a session that ended silently on the line after every resize — with the new size already
+  # printed, so a test that waits for the size and then stops still passes. TerminalSocketTest's
+  # resize test did exactly that and never noticed; the userflow story that types again afterwards
+  # is what found it. The flag can tell them apart, in every shell.
+  resized=0
+  winch() {
+    resized=1
+    stty size
+  }
+  trap winch WINCH
   printf 'fake-terminal ready\r\n'
   while :; do
     if IFS= read -r line; then
@@ -44,10 +79,11 @@ terminal() {
         crash) exit 3 ;;
         *) printf 'echo:%s\r\n' "$line" ;;
       esac
+    elif [ "$resized" = 1 ]; then
+      # The read was interrupted by the resize above, not ended: keep the session.
+      resized=0
     else
-      status=$?
-      # A read interrupted by a signal returns above 128; anything else is end of input.
-      [ "$status" -gt 128 ] || exit 0
+      exit 0
     fi
   done
 }

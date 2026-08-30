@@ -143,5 +143,98 @@ initialisation of `ForeignPty`, `setsid` being present in the runtime image, and
 served with a matching `<base href>`. Run it with `-DskipITs=false`, or with `-Dnative`, which flips
 the flag itself.
 
+**`TokenValidationBootstrapIT` is the only place the OIDC tenant is ever ON.** The shipped tenant is
+gated on `qits.auth.machine.required`, which every surefire suite here leaves false, so the whole
+`quarkus.oidc.*` block runs nowhere else. `stories/support/StoryProfile` is what turns it on. Its far
+side is qits-service-mock's `MockIdp`, which serves a real JWKS for a generated keypair, mints tokens
+against it and records what it answered.
+
 **Never run two native builds on this platform's host at once.** They OOM a 16 GB machine and take
 it down with them.
+
+## The story catalogue
+
+**Seven `@UserStory` methods over four `@QuarkusIntegrationTest` classes**, emitting
+`service/target/userstories/` and published per commit by `.config/qits/ci-event-userflows.yml` as
+`@userflows/qits-platform-system`. `skipITs` stays true and the pipeline names the classes; a new
+story class joins that `-Dit.test` list **in the same commit**, or it is silently never run.
+
+    api/TokenValidationBootstrapIT      authentication  the packaged boot: the JWKS fetch, the boot
+                                                        sweep, a peer's bearer, and a stranger's
+    stories/host/HostOverviewIT         the host        the machine, its node, and the swarm — and
+                                                        never an env value or a secret
+    stories/terminals/TerminalRefusalIT terminals       who may hold a shell here, and what a refused
+                                                        one costs the daemon (nothing)
+    stories/terminals/TerminalSessionIT terminals       a real shell on a real PTY, and the host
+                                                        monitor's two-act ending
+
+**One `StoryProfile` for the whole catalogue, and that is the point of it.** Every class carries
+`@TestProfile(StoryProfile.class)`, so failsafe launches the fast-jar **once**: one boot, one
+terminal registry, one docker recording. A second profile would be a second process whose startup
+traffic landed in whichever diagram happened to be open.
+
+**Order is load-bearing, not tidiness.** A cumulative source is attributed by a cursor, so
+pre-story traffic — the startup JWKS fetch and the boot sweep's two docker calls — lands in
+whichever story drains FIRST. `@UserflowRunsAfter(TokenValidationBootstrapIT.class)` on every other
+story is what keeps that the story it belongs to (`UserflowClassOrderer` is registered as junit's
+secondary orderer in the test `application.properties`; a local `junit-platform.properties` hard-fails
+surefire). Run a later class on its own and its first story inherits those calls and fails its edge
+count — loudly, which is the right way for that assumption to break.
+
+**The diagram is observed, never narrated.** `Interactions.happened()` was removed from the framework
+in 2026.829 and there is nothing to replace it with. Four passive feeds and one declaration:
+
+- **`NetworkTaps.restAssured("qits-platform-system")`** — the framework SHIPS the tap now; the
+  per-repo `StoryNetworkFilter` copy was deleted in the commit that added the catalogue. It turns
+  every RestAssured request into `<actor> -> qits-platform-system` labelled with the status this
+  service answered, skipping any path with a `/q/` segment — the probe root here is `/system/q`, so
+  the default is right without an override. It is idempotent per service name, which is why every
+  story class installs it from its own `@BeforeAll` and nothing is drawn twice. A story sets
+  `NetworkCapture.actor(...)` **before** each call, because a tap sees a request and never a role.
+- **`MockIdp`'s request log**, a cumulative `NetworkCapture.source`, for the startup JWKS fetch.
+- **`stories/support/StoryDocker`**, also cumulative, for every docker call — and this is where the
+  wave-5 shape changed. The docker hop is no longer declared, because it is genuinely observable:
+  `DockerProcess` spawns the CLI and reads its pipes, so `StoryDocker` STAGES the shipped
+  `fake-docker/docker` script into `target/story-docker/` and points the launched artifact there.
+  The copy is the point — `target/test-classes/fake-docker/` is written by the whole surefire suite,
+  which finishes before failsafe starts, so a recording read from there would open with several
+  hundred calls belonging to unit tests. The staged log is written by exactly one process, from its
+  first boot call onwards, which is why the source is registered at **zero with no floor**.
+- **The terminal socket**, instrumented at its own call sites in `stories/support/StoryTerminal`:
+  the dial as one `socket` edge, each frame as an `event` edge in the direction it was pushed. Every
+  observation there is synchronous **on the story thread** — a listener callback would read whatever
+  actor is current when the frame lands, which is a different story's. A refusal is recorded in the
+  catch block, so a "refused" arrow can never be drawn for a handshake that was allowed.
+
+**The one declared edge is the socket BEHIND the CLI**, `docker -> the host's docker daemon`. That is
+what `Network.declare` is for: no port to sit in front of, no request log that is the daemon's rather
+than the fixture's. Everything on this side of it is evidence.
+
+**A label is a summary, not an argv.** `StoryDocker.summarize` reduces a command line to
+`info`, `system df`, `exec -it {digest} sh`, and appends the exit code as ` -> 0` — the shape an
+HTTP label's status has, because it is the same half of the evidence. The whole argv would move the
+`networkHash` on every run (a terminal argv carries `QITS_SYSTEM_SESSION=<uuid>`, a glances argv a
+`--name` derived from it) and a Go `--format` template's braces are mermaid syntax. The argv is
+still assertable in full through `StoryDocker.argvOf`, which is where the sandbox claims live — the
+diagram carries summaries, a claim about a flag reads the argv.
+
+**The absences are the paying assertions.** `assertEdgeCount` on every story, `assertNoEdgesTo`
+(`docker`, the daemon, the idp) where the title is a claim about what did NOT happen, and
+`assertNotLeaked` for every minted bearer and every generated session id. An absence is a step and
+never an edge.
+
+**The linger reaper is deliberately not exercised, and that is a stated gap.** Both windows keep
+their shipped values (60s, 3s) — the surefire `application.properties` shortens them and
+`StoryProfile` does not. A story that waited out a window would be indistinguishable from a story
+that hung, and a session reaped by a timer would put its `docker rm -f` in whichever diagram was
+open when it fired. Every terminal story ends its own session; `TerminalLingerTest` keeps that
+coverage.
+
+**The fake terminal's resize handling was wrong, and a story is what found it.** The loop used to
+read "a read interrupted by a signal returns above 128; anything else is end of input", which is
+bash's behaviour and not dash's: dash answers 1 for both. The session therefore ended silently on
+the line after every resize — with the new size already printed, so `TerminalSocketTest`'s resize
+test, which waits for the size and then stops, passed anyway. The trap sets a flag now. The general
+lesson is the one worth keeping: a fixture assertion that stops at the moment of interest cannot
+see what the moment after it destroyed.
+
