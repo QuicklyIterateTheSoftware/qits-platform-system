@@ -74,10 +74,10 @@ detail view needs more of a container, it still does not need this.
 
 ## The terminal subsystem
 
-**It is copied from qits-projects, incident and all.** `ForeignPty`, its reachability metadata and
-`TerminalProcesses.terminalProcess` are that repository's, and the comment on the last one is the
-production outage it was written for: `ProcessBuilder`'s file redirects are opened by the CALLING
-process, and a session leader opening a pts adopts it as its controlling terminal. Do not simplify
+**It is copied from qits-projects-service, incident and all.** `ForeignPty`, its reachability
+metadata and `TerminalProcesses.terminalProcess` are that repository's, and the comment on the last
+one is the production outage it was written for: `ProcessBuilder`'s file redirects are opened by the
+CALLING process, and a session leader opening a pts adopts it as its controlling terminal. Do not simplify
 that launch. `HangupImmunity` is the backstop under it.
 
 **The reader is a PLATFORM thread, not a virtual one.** The read is a blocking FFM downcall, which

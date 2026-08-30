@@ -37,8 +37,8 @@ and no schema: a restart loses nothing except the live terminals, which it is me
 ## The socket
 
 **This service holds the host's docker socket** — the third holder on the platform, after
-qits-containers and qits-deployments. It is a deliberate, recorded grant in cli-bootstrap's extras
-block for this app:
+qits-containers and qits-deployments. It is a deliberate, recorded grant in qits-bootstrap-cli's
+extras block for this app:
 
     mounts[0]=bind:/var/run/docker.sock:/var/run/docker.sock
     groups[0]=${DOCKER_GID}
@@ -60,7 +60,7 @@ should refuse to come up.
     service/   the deployable: JAX-RS routes, the terminal WebSocket, the boot sweep, Quinoa
 
 `system/` is a library jar with no JAX-RS in it. `service/` is `<packaging>quarkus</packaging>` and
-carries the client submodule at `service/src/main/webui` (qits-platform-spa-system).
+carries the client submodule at `service/src/main/webui` (qits-system-platform-frontend).
 
 ## The two docker output shapes
 
