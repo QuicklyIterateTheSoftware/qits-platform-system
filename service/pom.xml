@@ -105,11 +105,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- The user-story framework: TokenValidationBootstrapIT is written as a @UserStory, so
-                 the gate-on packaged-boot proof doubles as documentation — steps, interactions and
-                 a sequence diagram emitted under target/userstories/. Both stories are browserless
-                 (no Flow parameter), so the transitive Playwright never launches anything and
-                 nothing downloads a browser. Version from the root pom's dependencyManagement. -->
+            <!-- The user-story framework. Seven stories over four integration tests — the
+                 gate-on packaged boot, the machine window, and the two halves of the terminal — so
+                 the proof doubles as documentation: steps and a network diagram emitted under
+                 target/userstories/. The diagram is observed rather than narrated: the framework's
+                 own NetworkTaps.restAssured for what a story sends here (the per-repo
+                 StoryNetworkFilter copy is gone), MockIdp's recording for the startup JWKS fetch,
+                 stories/support/StoryDocker's for every docker call, and instrumented call sites for
+                 the terminal socket. Only the unix socket BEHIND the docker CLI is declared. Every
+                 story is browserless (no Flow parameter), so the transitive Playwright never
+                 launches anything and nothing downloads a browser. Version from the root pom's
+                 dependencyManagement. -->
             <groupId>${project.groupId}</groupId>
             <artifactId>qits-userflows</artifactId>
             <scope>test</scope>

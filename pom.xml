@@ -62,13 +62,30 @@
         <qits.arch-rules.version>2026.817.175344</qits.arch-rules.version>
         <!-- The user-story framework (test scope): TokenValidationBootstrapIT is a userflow, so a
              `mvn verify -DskipITs=false "-Dit.test=TokenValidationBootstrapIT"` also regenerates
-             service/target/userstories/ — the story's documentation, sequence diagram included.
-             Published by qits-userflows into the same platform Maven repository as the two above. -->
-        <qits.userflows.version>2026.828.153026</qits.userflows.version>
-        <!-- The recording service mocks that IT boots against (the generic MockService plus
-             idp.MockIdp), published by qits-integrations-quarkus beside qits-auth-core and
-             qits-arch-rules. -->
-        <qits.service-mock.version>2026.827.71232</qits.service-mock.version>
+             service/target/userstories/ — the story's documentation, network diagram included.
+             Published by qits-userflows into the same platform Maven repository as the two above.
+
+             2026.829 is the version that REMOVED Interactions.happened() and SHIPPED the
+             RestAssured tap (NetworkTaps.restAssured, which replaced the per-repo StoryNetworkFilter
+             copy). An edge is observed now — the shipped tap for what arrives here, MockIdp's
+             recording for the startup JWKS fetch, StoryDocker's recording for every docker call,
+             instrumented call sites for the terminal socket — or explicitly declared, which is
+             reserved for the one hop no tap reaches: the unix socket behind the docker CLI. Never
+             narrated. Do not go back below it — the story catalogue will not compile. -->
+        <qits.userflows.version>2026.829.201516</qits.userflows.version>
+        <!-- The recording service mocks the story catalogue boots against (the generic MockService
+             plus idp.MockIdp), published by qits-integrations-quarkus beside qits-auth-core and
+             qits-arch-rules.
+
+             2026.829 is the version whose RecordedRequest carries the STATUS the mock answered
+             with, which is what turns the idp's recording into an edge labelled
+             `GET /idp/jwks -> 200` rather than one that only says the keys were asked for. Do not
+             go back below it. MockIdp stays the issuer stand-in here rather than a hand-written
+             one: this catalogue's whole reason to run packaged is that the shipped quarkus.oidc.*
+             block — a real JWKS fetch over HTTP, a real signature, a real audience check — runs
+             nowhere else, and only a server that serves a real JWKS for a real keypair exercises
+             it. -->
+        <qits.service-mock.version>2026.829.201505</qits.service-mock.version>
         <qits.maven.repository.url>http://registry.dev.localhost:8080/artifacts/maven/maven</qits.maven.repository.url>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

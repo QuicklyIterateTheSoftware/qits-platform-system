@@ -1,6 +1,6 @@
 # The per-commit userflow run: `mvn verify` at the pushed commit — which regenerates
-# service/target/userstories/ through TokenValidationBootstrapIT — and the reports published as one
-# docs bundle, site @userflows/qits-platform-system, version = the bare commit sha, branch riding as
+# service/target/userstories/ through the four story ITs — and the reports published as one docs
+# bundle, site @userflows/qits-platform-system, version = the bare commit sha, branch riding as
 # artifacts metadata for discovery.
 #
 # NON-GATING BY DESIGN, which is why it is a separate file from ci-post-receive.yml: this run going
@@ -26,12 +26,18 @@
 # A step container is started --cap-drop=ALL either way; /workspace is 1777 with a system-level
 # safe.directory entry, so a non-root checkout is what the image was built to serve.
 #
-# THERE IS NO DOCKER SOCKET IN THIS STEP AND NONE IS WANTED. This service's whole job is shelling
-# out to the docker CLI, but the suite points `qits.system.docker.binary` at a shell script under
+# THERE IS NO DOCKER SOCKET IN THIS STEP AND NONE IS WANTED, in the repository whose whole subject
+# is docker. The suite points `qits.system.docker.binary` at a shell script under
 # src/test/resources/fake-docker — a real ProcessBuilder forks a real child and the argv it gets is
-# the argv the builders produced, so nothing is mocked and no daemon is needed. The IT inherits that
-# same stand-in from PackagedSurfaceIT's profile, which is what keeps the launched artifact from
-# ever reaching for /var/run/docker.sock. `docker: true` would be a socket grant for nothing.
+# the argv the builders produced, so nothing is mocked and no daemon is needed. The story catalogue
+# goes one step further: stories/support/StoryDocker STAGES that same script into
+# target/story-docker/ (a directory only the launched artifact ever writes to, so the recording is
+# not the surefire suite's several hundred calls) and reads back the argv-plus-exit-code log it
+# writes. That is what makes the docker hop an OBSERVED `process` edge rather than a claim, while
+# this step still runs in a container with no daemon and no capability to reach one — the
+# clone-alone rule held in the one place it is hardest to hold. The single edge that stays declared
+# is the unix socket BEHIND the CLI, which no tap can stand in front of. `docker: true` would be a
+# socket grant for nothing.
 #
 # Quinoa is off (`-Dquarkus.quinoa=false` — the extension's root toggle; `.enabled` is silently
 # ignored and npm still runs): the client is ci-post-receive.yml's business, where the
@@ -43,19 +49,32 @@
 # service pom and docker/Dockerfile's `test -f` guard all say the same thing from their own side).
 # The packaged fast-jar failsafe boots is otherwise exactly what ships.
 #
-# THE TWO IT FLAGS ARE THE OTHER HALF, and they are why this repository does NOT opt its service
+# THE IT FLAGS ARE THE OTHER HALF, and they are why this repository does NOT opt its service
 # module back into ITs the way qits-githost does. `skipITs` is true in the root pom and stays true;
-# this module has two integration tests and only one of them belongs to this run:
+# this module has five integration tests and exactly one of them does not belong to this run:
 #
-#   TokenValidationBootstrapIT  the userflow — the whole point of this file
-#   PackagedSurfaceIT           half about the CLIENT (the base href at the root, the deep links,
-#                               the fallback that must not swallow /system), which the line above
-#                               deliberately does not build. A blanket `-DskipITs=false` would make
-#                               this quinoa-less run red on a test that is right.
+#   TokenValidationBootstrapIT  the catalogue's first class — the packaged boot with the OIDC tenant
+#                               ON, which is also the only place it is ever on
+#   HostOverviewIT              the machine window: the host, its node and the swarm around it
+#   TerminalRefusalIT           who may hold a shell on the platform host, and what a refused one
+#                               costs the daemon (nothing — which is the assertion)
+#   TerminalSessionIT           a real shell and the host monitor, end to end on a real PTY
+#   PackagedSurfaceIT           NOT in the list: half about the CLIENT (the base href at the root,
+#                               the deep links, the fallback that must not swallow /system), which
+#                               the quinoa line above deliberately does not build. A blanket
+#                               `-DskipITs=false` would make this run red on a test that is right.
 #
-# Naming the class keeps the opt-in to this pipeline and to these stories, and keeps the property's
-# own meaning ("run everything") intact for the `native` profile in service/pom.xml that sets it:
-# `-DskipITs=false "-Dit.test=TokenValidationBootstrapIT"`.
+# THE LIST IS THE CATALOGUE, BY NAME, AND A NEW STORY CLASS JOINS IT IN THE SAME COMMIT — an
+# unlisted class is silently never run and its diagram silently never published. Its ORDER here is
+# not the run order: failsafe takes the classes as a set, and what orders them is
+# UserflowClassOrderer, registered as junit's secondary orderer in the test application.properties
+# and driven by each story's @UserflowRunsAfter. That ordering is load-bearing rather than tidy —
+# every cumulative source (the idp's request log, StoryDocker's recording) is attributed by a
+# cursor, so the startup JWKS fetch and the boot sweep's two docker calls land in whichever story
+# drains FIRST, which the ordering makes TokenValidationBootstrapIT's first story.
+#
+# Naming the classes also keeps the property's own meaning ("run everything") intact for the
+# `native` profile in service/pom.xml that sets it.
 #
 # NO REPAIR WAS NEEDED to make the two new test-scope jars resolve. This repository already carries
 # `.qits-maven-settings.xml` and a `qits-maven` <repositories> entry — qits-auth-core and
@@ -95,7 +114,8 @@ steps:
       ./mvnw -B -ntp -s .qits-maven-settings.xml verify \
         -Dqits.maven.repository.url="$QITS_MAVEN_REPOSITORY_URL" \
         -Dquarkus.quinoa=false \
-        -DskipITs=false "-Dit.test=TokenValidationBootstrapIT"
+        -DskipITs=false \
+        "-Dit.test=TokenValidationBootstrapIT,HostOverviewIT,TerminalRefusalIT,TerminalSessionIT"
 
       # `-C … .` so the story directories are the bundle's roots — nesting one directory deep would
       # put it in every served URL. The path is service/target/userstories because the stories live
